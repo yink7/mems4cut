@@ -10,7 +10,7 @@
     body {
       font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
       min-height: 100vh;
-      background: #1a0000 url('장미.gif') center center / cover no-repeat scroll;
+      background: #1a0000 url('bg.gif') center center / cover no-repeat scroll;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -218,14 +218,14 @@
 
 <!-- 결과 GIF 오버레이 -->
 <div id="resultGif">
-  <img src="완료 등장.gif" alt="" />
+  <img src="done.gif" alt="" />
 </div>
 
 <!-- 시작 화면 -->
 <div id="s-start" class="screen active">
   <div class="logo-wrap">
     <div class="logo-glow" id="logoGlow"></div>
-    <img src="로고.webp" class="logo-img" id="logoImg" alt="꽃보다 남자" />
+    <img src="logo.webp" class="logo-img" id="logoImg" alt="꽃보다 남자" />
   </div>
   <button class="start-btn" onclick="startShooting()">촬영하기</button>
 </div>
@@ -275,11 +275,11 @@ const FRAME_CFG = [
 ];
 
 const ASSETS = {
-  bg: '장미.gif',
-  logo: '로고.webp',
-  resultGif: '완료 등장.gif',
-  pinkFrame: '프레임 틀.jpg',
-  roseFrame: '프레임 틀 2.jpg',
+  bg: 'bg.gif',
+  logo: 'logo.webp',
+  resultGif: 'done.gif',
+  pinkFrame: 'frame.jpg',
+  roseFrame: 'frame2.jpg',
 };
 
 let cutouts   = [null,null,null,null];
