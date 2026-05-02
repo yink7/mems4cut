@@ -322,10 +322,14 @@ function assetCandidates(src) {
   ].filter(Boolean))];
 }
 
+function assetUrl(src) {
+  return (window.MEM4CUT_ASSET_DATA && window.MEM4CUT_ASSET_DATA[src]) || src.normalize('NFD');
+}
+
 function applyStaticAssets() {
-  document.body.style.backgroundImage = `url("${ASSETS.bg.normalize('NFD')}")`;
-  document.getElementById('logoImg').src = ASSETS.logo.normalize('NFD');
-  document.querySelector('#resultGif img').src = ASSETS.resultGif.normalize('NFD');
+  document.body.style.backgroundImage = `url("${assetUrl(ASSETS.bg)}")`;
+  document.getElementById('logoImg').src = assetUrl(ASSETS.logo);
+  document.querySelector('#resultGif img').src = assetUrl(ASSETS.resultGif);
 }
 
 function loadImgEl(src) {
