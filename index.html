@@ -290,6 +290,7 @@ let stream    = null;
 let rafId     = null;
 let curFrame  = 0;
 let photos    = [];
+let audioCtx  = null;
 
 const video     = document.getElementById('hiddenVideo');
 const composite = document.getElementById('compositeCanvas');
@@ -372,9 +373,6 @@ function triggerLogoEntrance() {
   const logo = document.getElementById('logoImg');
   const glow = document.getElementById('logoGlow');
 
-  // 효과음: Web Audio API로 뾰로롱~ 합성
-  playMagicSound();
-
   // 애니메이션 클래스 부여
   logo.classList.add('enter');
   glow.classList.add('burst');
@@ -387,9 +385,31 @@ function triggerLogoEntrance() {
   }, { once: true });
 }
 
+function getAudioContext() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+async function unlockAudio() {
+  try {
+    const ac = getAudioContext();
+    if (ac.state === 'suspended') await ac.resume();
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    gain.gain.setValueAtTime(0.0001, ac.currentTime);
+    osc.start();
+    osc.stop(ac.currentTime + 0.02);
+  } catch (e) {
+    console.warn('오디오 준비 실패:', e.message);
+  }
+}
+
 function playMagicSound() {
   try {
-    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const ac = getAudioContext();
+    if (ac.state === 'suspended') ac.resume();
 
     // 뾰로롱: 상승하는 파스텔 톤들
     const notes = [
@@ -453,8 +473,54 @@ function playMagicSound() {
   }
 }
 
+function playBeep(freq = 880, duration = 0.12, volume = 0.12) {
+  try {
+    const ac = getAudioContext();
+    if (ac.state === 'suspended') ac.resume();
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const now = ac.currentTime;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(volume, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.start(now);
+    osc.stop(now + duration + 0.02);
+  } catch (e) {
+    console.warn('비프음 실패:', e.message);
+  }
+}
+
+function playShutterSound() {
+  try {
+    const ac = getAudioContext();
+    if (ac.state === 'suspended') ac.resume();
+    const now = ac.currentTime;
+    [0, 0.055].forEach((offset, i) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.type = 'square';
+      osc.frequency.value = i === 0 ? 420 : 680;
+      gain.gain.setValueAtTime(0.0001, now + offset);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + offset + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.055);
+      osc.start(now + offset);
+      osc.stop(now + offset + 0.07);
+    });
+  } catch (e) {
+    console.warn('셔터음 실패:', e.message);
+  }
+}
+
 // ══ 촬영 시작 ════════════════════════════════════════════
 async function startShooting() {
+  await unlockAudio();
+  playMagicSound();
   try {
     stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: 'user', width: {ideal:640}, height: {ideal:480} },
@@ -529,10 +595,12 @@ function drawPerson(idx) {
 async function countdown(n) {
   const el = document.getElementById('cdOverlay');
   for (let i = n; i > 0; i--) {
+    playBeep(i === 1 ? 1320 : 920, 0.11, 0.14);
     el.textContent = i; el.classList.add('show');
     await delay(900);
     el.classList.remove('show'); await delay(100);
   }
+  playShutterSound();
   el.textContent = '📸'; el.classList.add('show');
   await delay(280);
   el.classList.remove('show');
